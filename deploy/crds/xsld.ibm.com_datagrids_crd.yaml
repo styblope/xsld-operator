@@ -1,0 +1,139 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: datagrids.xsld.ibm.com
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.gridType
+    description: type of data grid
+    name: Type
+    type: string
+  - JSONPath: .spec.gridCapacity
+    description: capacity of the data grid
+    name: Capacity
+    type: integer
+  - JSONPath: .status.status
+    description: online status of the data grid
+    name: Status
+    type: string
+  group: xsld.ibm.com
+  names:
+    kind: DataGrid
+    listKind: DataGridList
+    plural: datagrids
+    singular: datagrid
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: DataGrid is the Schema for the datagrids API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: DataGridSpec defines the desired state of DataGrid
+          properties:
+            description:
+              description: Description of the grid
+              type: string
+            gridCapacity:
+              description: Grid capacity in MB default value 0 means unlimited
+              format: int64
+              type: integer
+            gridType:
+              description: 'Type of grid: Simple, Session, DynaCache, Coustom default
+                is Simple'
+              enum:
+              - Simple
+              - Session
+              - DynaCache
+              - Custom
+              type: string
+            groupName:
+              description: Name of the group which owns the grid this filed is overriden
+                by the name defined in the referenced XsldCache object
+              type: string
+            lockTimeout:
+              default: 15
+              description: Lock time out for the backing maps in seconds default is
+                15 seconds
+              format: int32
+              type: integer
+            numAsyncReplicas:
+              default: 1
+              description: Number of asynchronous replicas default is 1 replica
+              format: int32
+              type: integer
+            numPartition:
+              default: 3
+              description: Number of partitions the number must be a prime number.
+                default is 3 partitions
+              enum:
+              - 1
+              - 2
+              - 3
+              - 5
+              - 7
+              - 11
+              - 13
+              - 17
+              - 19
+              - 23
+              - 29
+              - 31
+              format: int32
+              type: integer
+            numSyncReplicas:
+              description: Number of synchronous replicas
+              format: int32
+              type: integer
+            ownerName:
+              default: xsadmin
+              description: Name of tde grid owner default is xsadmin
+              type: string
+            templateName:
+              description: Grid template name
+              type: string
+            timeToLive:
+              description: How long each map entry is present in seconds
+              format: int32
+              type: integer
+            transactionTimeout:
+              default: 30
+              description: Transaction timeout in seconds default is 30 seconds
+              format: int32
+              type: integer
+            useAuthentication:
+              description: Turn on authentication
+              type: boolean
+            useAuthorization:
+              description: Turn on authorization
+              type: boolean
+            useCapLRUEvictor:
+              description: Use LRU evictor for grid capacity
+              type: boolean
+          type: object
+        status:
+          description: DataGridStatus defines the observed state of DataGrid
+          properties:
+            status:
+              description: Online status of the datagrid
+              type: string
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true

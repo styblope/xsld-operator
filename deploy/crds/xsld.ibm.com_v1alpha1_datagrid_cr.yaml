@@ -1,0 +1,35 @@
+apiVersion: xsld.ibm.com/v1alpha1
+kind: DataGrid
+metadata:
+  name: example-datagrid
+spec:
+  # Description of the grid
+  # description:
+  # Name of tde grid owner
+  # ownerName: xsadmin
+  # Turn on authentication
+  # useAuthentication: false
+  # Turn on authorization
+  # useAuthorization: false
+  # Grid capacity in MB
+  # gridCapacity: 
+  # Use LRU evictor for grid capacity
+  # useCapLRUEvictor:
+  # Transaction timeout in seconds
+  # transactionTimeout:
+  # Number of partitions
+  numPartition: 3
+  # Number of synchronous replicas
+  # numSyncReplicas:
+  # Number of asynchronous replicas
+  # numAsyncReplicas:
+  # How long each map entry is present in seconds
+  # timeToLive:
+  # Lock time out for the backing maps in seconds
+  # lockTimeout:
+  # Type of grid
+  # gridType: Simple
+  # Grid template name 
+  templateName: Simple
+  # Name of the group which owns the grid
+  # groupName:

@@ -1,0 +1,12 @@
+apiVersion: xsld.ibm.com/v1alpha1
+kind: XsldCache
+metadata:
+  name: example-xsldcache
+spec:
+  # Add fields here
+  license: accept
+  size: 1
+  adminPwd: Password123!
+  secretKey: Password123!
+  image: ibmcom/xsld:8613
+  entrypointConfigMap: ip-update-entrypoint

@@ -1,0 +1,136 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: xsldcaches.xsld.ibm.com
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .status.members
+    description: number of cache group members
+    name: Members
+    type: integer
+  - JSONPath: .status.online
+    description: number of online members
+    name: Online
+    type: integer
+  - JSONPath: .status.pendingTasks
+    description: number of pending tasks
+    name: Tasks
+    type: integer
+  - JSONPath: .status.grids
+    description: number of data grids
+    name: Grids
+    type: integer
+  - JSONPath: .metadata.creationTimestamp
+    name: Age
+    type: date
+  group: xsld.ibm.com
+  names:
+    kind: XsldCache
+    listKind: XsldCacheList
+    plural: xsldcaches
+    singular: xsldcache
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: XsldCache is the Schema for the xsldcaches API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: XsldCacheSpec defines the desired state of XsldCache
+          properties:
+            adminPwd:
+              description: AdminPwd is the xsadmin user password (immutable). Password
+                must contain at least one number[0-9], one uppercase character[A-Z],
+                one special character[~!@#$%^&*()_-+=:;'[]{}|<>,.?/] and be at least
+                10 characters. Double quote cannot be used.
+              minLength: 10
+              type: string
+            capacity:
+              description: Capacity is memory size allocated to a member in GB (immutable).
+                Default capacity is 1GB
+              format: int32
+              minimum: 1
+              type: integer
+            catalogs:
+              description: Catalogs is the number of catalog servers in the cache
+                group. Default is 3 catalog servers.
+              format: int32
+              minimum: 1
+              type: integer
+            entrypointConfigMap:
+              description: EntrypointConfigMap is the name of a configmap with custom
+                entrypoint.sh which overides the default entrypoint
+              type: string
+            group:
+              description: Group is the name of the cache group (immutable). Default
+                name is 'cg1'
+              maxLength: 64
+              type: string
+            image:
+              description: Image is the repository and tag of the XSLD container image
+                Default is `ibmcom/xsld:latest` TODO +kubebuilder:validation:Pattern=.+:.+
+              type: string
+            license:
+              description: License acceptance (immutable)
+              enum:
+              - accept
+              type: string
+            secretKey:
+              description: SecretKey is the secret key for the cache group (immutable).
+                Password must contain at least one number[0-9], one uppercase character[A-Z],
+                one special character[~!@#$%^&*()_-+=:;'[]{}|<>,.?/] and be at least
+                10 characters. Double quote cannot be used.
+              minLength: 10
+              type: string
+            size:
+              description: Size defines the desired number of members joined in the
+                cache group. Corresponds to the number of the stateful set replicas
+              format: int32
+              minimum: 1
+              type: integer
+          required:
+          - adminPwd
+          - license
+          - secretKey
+          - size
+          type: object
+        status:
+          description: XsldCacheStatus defines the observed state of XsldCache
+          properties:
+            grids:
+              description: Grids is the list of created data grid names
+              items:
+                type: string
+              type: array
+            members:
+              description: Members is the number of joined cache group members
+              format: int32
+              type: integer
+            online:
+              description: Online is the number of online cache group members
+              format: int32
+              type: integer
+            pendingTasks:
+              description: PendingTasks is the number of pending cache group tasks
+              format: int32
+              type: integer
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true

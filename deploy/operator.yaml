@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xsld-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: xsld-operator
+  template:
+    metadata:
+      labels:
+        name: xsld-operator
+    spec:
+      serviceAccountName: xsld-operator
+      containers:
+        - name: xsld-operator
+          # Replace this with the built image name
+          image: REPLACE_IMAGE
+          command:
+          - xsld-operator
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "xsld-operator"
