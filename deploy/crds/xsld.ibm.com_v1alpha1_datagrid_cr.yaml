@@ -5,7 +5,7 @@ metadata:
 spec:
   # Description of the grid
   # description:
-  # Name of tde grid owner
+  # Name of the grid owner
   # ownerName: xsadmin
   # Turn on authentication
   # useAuthentication: false
