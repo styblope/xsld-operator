@@ -1,27 +1,27 @@
 # xsld-operator
-This XSLD Operator is a Kubernetes operator for managing [IBM eXtreme Scale Liberty Deployment (XSLD)](https://www.ibm.com/support/knowledgecenter/en/SSTVLU_8.6.1/com.ibm.websphere.extremescale.doc/cxsgetstartxsld.html) based on the [official IBM XSLD container image](https://hub.docker.com/r/ibmcom/xsld/).
+The XSLD Operator is a Kubernetes operator for managing [IBM eXtreme Scale Liberty Deployment (XSLD)](https://www.ibm.com/support/knowledgecenter/en/SSTVLU_8.6.1/com.ibm.websphere.extremescale.doc/cxsgetstartxsld.html) based on the [official IBM XSLD container image](https://hub.docker.com/r/ibmcom/xsld/).
 
-> **Warning:** This project is a result of a customer proof-of-concept and it isn't polished enough for actual production use. At this stage, the binary will only be provided upon individual requests.
+> **Note:** The project is an outcome of a customer proof-of-concept and it isn't yet ready for production use. At this stage, the binary will only be provided upon individual requests.
 
-The XSLD Operator is written in Go using the open-source [Operator-SDK](https://github.com/operator-framework/operator-sdk) which is part of the [Operator Framework](https://github.com/operator-framework) toolkit maintained by RedHat. In terms of the Operator Framework maturity model, the operator roughly covers the following phases at various levels of completeness:
+The XSLD Operator, written in Go, is developed using the open-source [Operator-SDK](https://github.com/operator-framework/operator-sdk) which is part of the [Operator Framework](https://github.com/operator-framework) toolkit maintained by RedHat. In terms of the Operator Framework maturity model, the operator roughly covers the following phases at various levels of completeness:
 <p align="center">
 <img src="doc/images/operator-phases.png" width=600>
 </p>
 
 - [x] **Basic install**  
-The operator provides a user-friendly deployment of XSLD cache on Kubernetes. Using custom CRDs aligned with the inner logical structure of XSLD, users can declaratively create new multi-member XSLD cache deployments and apply custom Data Grid configurations without additional manual configuration inside the containers. The operator also automatically provisions and manages per-member persistent storage throughout the whole cache deployment lifecycle including scaling. Out-of-band adjustments to the XSLD container startup are devised in order to cater for the specifics of Kubernetes networking (see below).
+The operator provides an easy-to-use way to install and run an XSLD cache in Kubernetes. Using custom CRDs, aligned with the inner logical structure of XSLD, users can declaratively create multi-member XSLD cache deployments and define custom Data Grid configurations without resort to manual configuration using the web UI. The operator also automatically provisions and manages per-member storage volumes. Out-of-band adjustments to the XSLD container startup are devised in order to cater for the specifics of Kubernetes networking (the XSLD container image is not modified).
 
 - [x] **Seamless Upgrades**  
-The XSLD operator builds on a standard Kubernetes StatefulSet replication controller and image rolling update is enabled via the main CRD.
+The XSLD operator is built around a standard Kubernetes StatefulSet replication controller and it's image rolling update function is propagated into the cache controller.
 
 - [x] **Full lifecycle**  
-Aside of automatic persistent storage provisioning and de-provisioning, no further data backup/recovery measures are implemented due to the nature of the in-memory cache.
+Aside of automatic persistent storage provisioning and de-provisioning, no persistent data backup/recovery measures are implemented. HA mode of XSLD cache is being explored.
 
 - [ ] **Deep Insights**  
-This area yet to be explored and addressed, possibly exposing and integrating the built-in XSLD performance metrics and logs.
+This area is yet to be explored and addressed, possibly exposing and integrating the built-in XSLD performance metrics and logs.
 
 - [x] **Auto Pilot**  
-The core functionality of the XSLD operator lies in the automated XSLD cache group establishment, maintenance, dynamic scaling and data partition provisioning and configuration. In particular, XSLD cache group rescaling involves highly coordinated triggering of join/disjoin tasks executed on the cache members using the XSLD REST APIs.
+The core of the XSLD operator functionality lies in the automated XSLD cache deployment, cache group establishment, maintenance, dynamic scaling and data partition configuration. In particular, XSLD cache group rescaling involves highly coordinated and well-timed triggering of join/disjoin tasks executed on the cache members using the XSLD REST APIs.
 
 ### About eXtreme Scale Liberty Deployment
 
@@ -35,21 +35,22 @@ The WebSphere® eXtreme Scale Liberty Deployment provides Liberty caching server
 - Multi-tenancy processes
 
 ## How the XSLD Operator works
-The operator design follows closely the concepts and best practises provided by the Operator SDK project. *Custom Resource Definitions (CRD)* are defined for setting up the multi-pod XSLD cache group and configuration of the data grid partitions inside the cache group. A controller defined around each of the CRD implements the reconciliation logic to maintain the desired state.
+The operator design follows closely the concepts and best practises provided by the Operator SDK project. *Custom Resource Definitions (CRD)* are defined for setting up the multi-pod XSLD cache group and configuration of the data grid partitions inside the cache group. Controllers around each of the CRD implement the level-based reconciliation logic to maintain the desired state.
 
-The operator leverages and extends the default Kubernetes *StatefulSet* replication controller with managed *PersistentVolumeClaims* backed by *PersistentVolumes*, currently on NFS. Each PVC holds data and configuration associated with the respective XSLD cache instance. The PVCs lifetime is aligned with the desired state of the cache group replicas, which ensures the XSLD cache group is recovered upon pod or container restarts/reschedules.  Unlike the default StatefulSet mode, the PVC are deleted and the data volumes are reclaimed back as soon as pods are removed from the managed set as a result of a scale-down request.
+The operator leverages the Kubernetes *StatefulSet* replication controller for ordered pod deployment with managed *PersistentVolumeClaims* backed by *PersistentVolumes*, currently using NFS backend. Each PVC holds runtime data and configuration associated with the respective XSLD cache instance. The PVCs lifetime is aligned with the declared state of the StatfulSet, which ensures the XSLD cache group is recovered even in case of pod/container restarts. Unlike default StatefulSet function, the PVC are deleted and the data volumes are reclaimed back by the operator as soon as pods are removed from the managed set as a result of a scale-down condition.
 
-The XSLD cache configuration, control and status retrieval is performed through the [XSLD Admin and Operational REST API](https://www.ibm.com/support/knowledgecenter/en/SSTVLU_8.6.1/com.ibm.websphere.extremescale.doc/cxsaccessgridxsldREST.html). [Swagger Codegen](https://github.com/swagger-api/swagger-codegen) generator is used to generate the corresponding Go API client module.
+The XSLD cache configuration and control tasks and status retrieval is hadled via the [XSLD Admin and Operational REST API](https://www.ibm.com/support/knowledgecenter/en/SSTVLU_8.6.1/com.ibm.websphere.extremescale.doc/cxsaccessgridxsldREST.html). [Swagger Codegen](https://github.com/swagger-api/swagger-codegen) generator is used to generate the corresponding Go client module from the exported OpenAPI specification.
 
 ## Custom Resource Definitions
-The main **`XsldCache`** CRD defines a group of interconnected XSLD members. When an `XsldCache` resource is created the controller creates a corresponding StatefultSet and initializes the cache members in the ordinal sequence, allocating new PVCs as data volumes. New members are automatically joined to the cache group by execution of the XSLD Join Task. State logic is in place which triggers the join/disjoin tasks in the correct phases of the pod startup/termination taking care of request retries and parallel task conflicts. The controller maintains an independent loop (via a goroutine) for watching the runtime cache status.
-
-The `XsldCache` resource controller also creates a matching Headless Service for the StatefulSet which ensures that pods are DNS/resolvable within the cluster (the XSLD requires FQDN hostname resolution).
-
-When the XSLD cache group is scheduled for a scale-down the leaving member correctly disjoins (via the API Disjoin Task) the group prior to the pod termination. After the pod terminates, the controller deletes the associated PVC (which isn't done by default by the StatefulSet controller)
 
 ### `XsldCache`
-**`XsldCache`** is the primary resource which defines the XSLD cache group and the managed StatefulSet
+**`XsldCache`** is the primary resource which defines the XSLD cache group managed by a StatefulSet replication controller.
+
+The main **`XsldCache`** CRD defines a group of interconnected XSLD members. When an `XsldCache` resource is created, the controller creates a corresponding StatefultSet, initializes the cache members in the ordinal sequence and allocates new data volumes as PVCs. New members are automatically joined to the cache group by execution of the XSLD Join Task as soon as the container processes are initialized. State logic is in place to trigger the join/disjoin tasks in the correct phases of the pod startup/termination, taking care of request retries and parallel task conflicts. The controller maintains an independent watch loop (via a goroutine) for the runtime cache status.
+
+The `XsldCache` resource controller additionally creates a Headless Service matching the StatefulSet which provides DNS name resolution for the pods (the XSLD requires own FQDN hostname resolution during startup, which has implications on the Readiness probe checks).
+
+When the XSLD cache group is scheduled for a scale-down, the leaving members correctly disjoin the group (via the API Disjoin Task) prior to the pod termination. After the pods terminate, the controller deletes the associated PVCs (which isn't the default StatefulSet behavior)
 
 ```yaml
 apiVersion: xsld.ibm.com/v1alpha1
@@ -91,7 +92,7 @@ example-xsldcache   2         2        1       1       2d
 
 ### `DataGrid`
 
-**`DataGrid`** defines the data grids that are to be provisioned inside the matching `XsldCache` instance in the given namespace. Multiple data grids, i.e. multiple `DataGrid` objects, can be created in a cache.
+**`DataGrid`** defines the data grids that are created inside the matching `XsldCache` instance in the given namespace. Multiple data grids, i.e. multiple `DataGrid` objects, can be created in a cache.
 
 ```yaml
 apiVersion: xsld.ibm.com/v1alpha1
@@ -105,7 +106,7 @@ spec:
   gridCapacity:
   # Type of grid: Simple, Session, DynaCache, Custom
   gridType: Simple
-  # Name of the group which owns the grid this field is overriden
+  # Name of the group which owns the grid this field is overrideiiiikkjjjjjjjjjjjkkkkjkkkkkkkkkjjjjjjjjjjjjjjjjjjjjkhhhhhhhhhhhn
   #  by the name defined in the referenced XsldCache object
   groupName:
   # Lock time out for the backing maps in seconds default is
@@ -132,7 +133,7 @@ spec:
   useCapLRUEvictor:
 ```
 
-`DataGrid` Status returns the online status of the data grid
+`DataGrid` Status returns the online status of the data grid.
 
 ## Usage
 
@@ -265,6 +266,10 @@ $ watch kubectl get xsldcache,pod,pvc
 
 
 #### Verify the cache configuration in the XSLD WebUI
+The cache configuration can be verified using the XSLD web UI accessed from the primary pod:
+
+https://example-xsldcache-0.example-xsldcache.default.svc.cluster.local:9443/wxsui/
+
 <div align="center">
 <img src="doc/images/screenshot1.png">
 <p></p>
